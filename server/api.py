@@ -1,9 +1,7 @@
-import nltk
 import sys
 import os
 
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
-
 from configs import VERSION
 from configs.server_config import OPEN_CROSS_DOMAIN
 import argparse
@@ -12,7 +10,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from starlette.responses import RedirectResponse
 from server.chat.chat import chat
 from server.chat.long_file_chat import upload_temp_doc, long_file_chat
-from server.utils import (BaseResponse, FastAPI, MakeFastAPIOffline )
+from server.utils import (BaseResponse, FastAPI, MakeFastAPIOffline)
 
 
 async def document():

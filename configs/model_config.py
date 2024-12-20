@@ -19,5 +19,11 @@ HISTORY_LEN = 3
 MAX_TOKENS = 2048
 
 # temperature < 1.0, 输出更具确定性和重复性 > 1.0, 增加随机性
-TEMPERATURE = 0.7
+TEMPERATURE = 0.5
 
+
+# 【-2~2】
+# 控制生成文本中特定单词或短语的存在频率
+# 较高的presence_penalty 会模型更倾向于在生成的文本中包含多样性更大的单词和短语，减少重复性。
+# 较低的presence_penalty模型可能更倾向于生成包含和输入相近的文本，重复性
+PRESENCE_PENALTY = 1.05

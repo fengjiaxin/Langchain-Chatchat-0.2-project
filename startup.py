@@ -6,14 +6,6 @@ import sys
 from multiprocessing import Process
 from pprint import pprint
 
-try:
-    import numexpr
-
-    n_cores = numexpr.utils.detect_number_of_cores()
-    os.environ["NUMEXPR_MAX_THREADS"] = str(n_cores)
-except:
-    pass
-
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 from configs import (
     LOG_PATH,
@@ -583,5 +575,3 @@ if __name__ == "__main__":
         asyncio.set_event_loop(loop)
 
     loop.run_until_complete(start_main_server())
-
-

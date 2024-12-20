@@ -8,7 +8,7 @@ from configs import (
     TEMPERATURE,
     CHUNK_SIZE,
     HTTPX_DEFAULT_TIMEOUT,
-    logger, log_verbose,
+    logger, log_verbose, MAX_TOKENS, PRESENCE_PENALTY,
 )
 import httpx
 import contextlib
@@ -259,7 +259,8 @@ class ApiRequest:
             query: str,
             history: List[Dict] = [],
             temperature: float = TEMPERATURE,
-            max_tokens: int = None,
+            max_tokens: int = MAX_TOKENS,
+            presence_penalty: float = PRESENCE_PENALTY,
             **kwargs,
     ):
         '''
@@ -270,6 +271,7 @@ class ApiRequest:
             "history": history,
             "temperature": temperature,
             "max_tokens": max_tokens,
+            "presence_penalty": presence_penalty
         }
 
         # print(f"received input message:")
@@ -283,7 +285,8 @@ class ApiRequest:
             query: str,
             filename: str,
             temperature: float = TEMPERATURE,
-            max_tokens: int = None,
+            max_tokens: int = MAX_TOKENS,
+            presence_penalty: float = PRESENCE_PENALTY,
     ):
         '''
         对应api.py/chat/file_summary_chat接口
@@ -293,6 +296,7 @@ class ApiRequest:
             "filename": filename,
             "temperature": temperature,
             "max_tokens": max_tokens,
+            "presence_penalty": presence_penalty
         }
 
         response = self.post(

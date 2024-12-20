@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 import re
-from typing import List, Union
+from typing import List
 from langchain.document_loaders import PyMuPDFLoader
 
 
