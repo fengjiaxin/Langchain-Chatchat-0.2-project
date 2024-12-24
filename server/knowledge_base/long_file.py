@@ -1,5 +1,8 @@
 import os
 import time
+
+from langchain.text_splitter import MarkdownTextSplitter
+
 from configs import (
     CHUNK_SIZE,
     logger,
@@ -47,7 +50,7 @@ class LongPdfFile:
             keep_separator=True,
             is_separator_regex=True,
             chunk_size=chunk_size,
-            chunk_overlap=0
+            chunk_overlap=25
         )
 
         chunk_list = []
@@ -62,7 +65,8 @@ class LongPdfFile:
     def file2chunks(self, refresh: bool = False, chunk_size: int = CHUNK_SIZE) -> List[Chunk]:
         if self.chunks is None or refresh:
             pages = self.file2pages()
-            self.chunks = self.pages2chunks(pages=pages, chunk_size=chunk_size, refresh=refresh)
+            # self.chunks = self.pages2chunks(pages=pages, chunk_size=chunk_size, refresh=refresh)
+            self.chunks = self.pages2chunks(pages=pages, refresh=refresh)
         return self.chunks
 
     def file_exist(self):

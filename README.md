@@ -27,8 +27,14 @@ Python 3.11.7
 
 ```shell
 
-# 安装全部依赖
-$ pip install -r requirements.txt 
+# 安装torch-cpu
+$ pip install torch==2.0.1 -i https://pypi.tuna.tsinghua.edu.cn/simple
+
+# 安装后端依赖
+$ pip install -r requirements_lite.txt -i https://pypi.tuna.tsinghua.edu.cn/simple 
+
+# 安装前端依赖
+$ pip install -r requirements_web.txt -i https://pypi.tuna.tsinghua.edu.cn/simple 
 ```
 
 

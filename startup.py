@@ -366,7 +366,6 @@ def parse_args() -> argparse.ArgumentParser:
 
 def dump_server_info(after_start=False, args=None):
     import platform
-    import langchain
     import fastchat
     from server.utils import api_address, webui_address
 
@@ -375,7 +374,7 @@ def dump_server_info(after_start=False, args=None):
     print(f"操作系统：{platform.platform()}.")
     print(f"python版本：{sys.version}")
     print(f"项目版本：{VERSION}")
-    print(f"langchain版本：{langchain.__version__}. fastchat版本：{fastchat.__version__}")
+    print(f"fastchat版本：{fastchat.__version__}")
     print("\n")
 
     models = LLM_MODELS

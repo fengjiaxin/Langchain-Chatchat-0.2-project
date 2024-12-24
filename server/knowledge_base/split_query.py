@@ -6,6 +6,8 @@ from server.utils import get_completion, get_openai_client
 from configs import logger, EXTRACT_INFO_TEMPLATE
 
 
+# 利用大模型提取关键信息
+
 def extract_information(query: str = '', extracted_content: str = '') -> str:
     information = extracted_content.strip()
     if information.startswith('```json'):
@@ -54,7 +56,7 @@ if __name__ == "__main__":
     response = splitQuery.run(query)
     end = time.time()
     print(response)
-    print(end - start) # 3s
+    print(end - start)  # 3s
 
     # x = '{"information": ["风险问题"], "instruction": ["帮我定位"]}'
     # dic = json5.loads(x)

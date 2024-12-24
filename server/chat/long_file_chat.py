@@ -2,7 +2,8 @@ from string import Template
 import openai
 from fastapi import Body, File, UploadFile
 from sse_starlette.sse import EventSourceResponse
-from configs import (LLM_MODELS, TEMPERATURE, DEFAULT_MAX_REF_SIZE, KNOWLEDGE_CHAT_TEMPLATE, PRESENCE_PENALTY)
+from configs import (LLM_MODELS, TEMPERATURE, DEFAULT_MAX_REF_SIZE, KNOWLEDGE_CHAT_TEMPLATE, PRESENCE_PENALTY,
+                     USE_LLM_EXTRACT_INFO, SEARCH_TOP_K)
 from server.knowledge_base.doc_parser import Chunk
 from server.knowledge_base.split_query import SplitQuery
 from server.utils import (BaseResponse, get_temp_dir, fschat_openai_api_address)
@@ -56,6 +57,7 @@ def upload_temp_doc(
 async def long_file_chat(query: str = Body(..., description="用户输入", examples=["你好"]),
                          filename: str = Body(..., description="文件名称"),
                          temperature: float = Body(TEMPERATURE, description="LLM 采样温度", ge=0.0, le=1.0),
+                         top_k: int = Body(SEARCH_TOP_K, description="匹配条数", ge=1, le=20),
                          presence_penalty: float = Body(PRESENCE_PENALTY, description="重复惩罚", ge=-2.0, le=2.0),
                          max_tokens: Optional[int] = Body(None,
                                                           description="限制LLM生成Token数量，默认None代表模型最大值"),
@@ -79,15 +81,18 @@ async def long_file_chat(query: str = Body(..., description="用户输入", exam
 
         # 2.利用大模型抽取关键信息
         if not summary_flag:  # 非总结类
-            splitQuery = SplitQuery()
-            query_dic["information"] = splitQuery.run(query=query)
+            if USE_LLM_EXTRACT_INFO:
+                splitQuery = SplitQuery()
+                query_dic["information"] = splitQuery.run(query=query)
+            else:
+                query_dic["information"] = query
 
         # 3.获取chunks
         chunks = longPdfCachePool.get(filename)
 
         # 3.keyword 搜索
-        content_list = get_content(query_dic["information"], chunks)
-        context = "\n\n".join(content_list)
+        chunk_list = get_content(query_dic["information"],top_k, chunks)
+        context = "\n".join([chunk.content for chunk in chunk_list])
 
         # 4.送到大模型里
         template = Template(KNOWLEDGE_CHAT_TEMPLATE)
@@ -103,20 +108,26 @@ async def long_file_chat(query: str = Body(..., description="用户输入", exam
             stream=True,
         )
 
+        source_documents = []
+        for idx, chunk in enumerate(chunk_list):
+            text = f"""出处 [{idx + 1}] [{chunk.page_num}页] \n\n{chunk.content}\n\n"""
+            source_documents.append(text)
+
         async for event in completion:
             text = event.choices[0].delta.content
             if text:
                 yield json.dumps(
                     {"answer": text},
                     ensure_ascii=False)
+        yield json.dumps({"docs": source_documents}, ensure_ascii=False)
 
     return EventSourceResponse(file_base_chat_iterator())
 
 
-def get_content(query: str, chunks: List[Chunk]) -> list:
+def get_content(query: str, top_k:int, chunks: List[Chunk]) -> List[Chunk]:
     if chunks:
         keyWordSearch = KeywordSearch()
-        txt_list = keyWordSearch.call(query=query, max_ref_size=DEFAULT_MAX_REF_SIZE,
+        txt_list = keyWordSearch.call(query=query, top_k = top_k,max_ref_size=DEFAULT_MAX_REF_SIZE,
                                       chunks=chunks)
         return txt_list
     else:

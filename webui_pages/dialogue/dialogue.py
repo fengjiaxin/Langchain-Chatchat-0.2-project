@@ -4,7 +4,7 @@ from streamlit_chatbox import *
 from datetime import datetime
 import os
 
-from configs import (TEMPERATURE, HISTORY_LEN, LLM_MODELS, MAX_TOKENS, PRESENCE_PENALTY)
+from configs import (TEMPERATURE, HISTORY_LEN, LLM_MODELS, MAX_TOKENS, PRESENCE_PENALTY, SEARCH_TOP_K)
 from typing import List, Dict
 
 chat_box = ChatBox(
@@ -62,7 +62,7 @@ def dialogue_page(api: ApiRequest):
             st.toast(text)
 
         dialogue_modes = ["问答助手",
-                          "文档解读助手",
+                          "文件助手",
                           ]
         dialogue_mode = st.selectbox("请选择对话模式：",
                                      dialogue_modes,
@@ -72,8 +72,8 @@ def dialogue_page(api: ApiRequest):
                                      )
 
         temperature = st.slider("temperature:[数值越大,随机性越高]", 0.0, 2.0, TEMPERATURE, 0.1)
-        max_tokens = st.slider( "max_token:  [控制模型生成文本长度]", 128, 2048, MAX_TOKENS, 128)
-        presence_penalty = st.slider("presence_penalty:[惩罚重复文本]", -2.0, 2.0, PRESENCE_PENALTY, 0.1)
+        max_tokens = st.slider("max_token:  [控制模型生成文本长度]", 256, 2048, MAX_TOKENS, 128)
+        presence_penalty = st.slider("presence_penalty:[惩罚重复文本]", 0.0, 2.0, PRESENCE_PENALTY, 0.1)
         if dialogue_mode == "问答助手":
             history_len = st.number_input("历史对话轮数：", 0, 10, HISTORY_LEN)
         else:  #"文件助手"
@@ -82,8 +82,9 @@ def dialogue_page(api: ApiRequest):
                                         [".pdf"],
                                         accept_multiple_files=False)
                 files = [file]
+                top_k = st.number_input("匹配知识条数：", 1, 20, SEARCH_TOP_K)
                 if st.button("开始上传", disabled=len(files) == 0):
-                    file_id,msg = upload_temp_doc(files, api)
+                    file_id, msg = upload_temp_doc(files, api)
                     st.toast(msg)
                     st.session_state["file_id"] = file_id
 
@@ -121,11 +122,14 @@ def dialogue_page(api: ApiRequest):
             if st.session_state["file_id"] is None:
                 st.error("请先上传文件再进行对话")
                 st.stop()
-            chat_box.ai_say(f"正在阅读 `{st.session_state['file_id']}`，并思考问题 ...")
+            chat_box.ai_say([
+                f"正在阅读 `{st.session_state['file_id']}`，并思考问题 ...",
+                Markdown("...", in_expander=True, title="文件匹配结果", state="complete"),
+            ])
             text = ""
-            idx = 0
             for d in api.long_file_chat(prompt,
                                         filename=st.session_state["file_id"],
+                                        top_k=top_k,
                                         temperature=temperature,
                                         max_tokens=max_tokens,
                                         presence_penalty=presence_penalty
@@ -134,10 +138,10 @@ def dialogue_page(api: ApiRequest):
                     st.error(error_msg)
                 elif chunk := d.get("answer"):
                     text += chunk
-                    chat_box.update_msg(text)
-                    idx += 1
+                    chat_box.update_msg(text, element_index=0)
+            chat_box.update_msg(text, element_index=0, streaming=False)
+            chat_box.update_msg("\n\n".join(d.get("docs", [])), element_index=1, streaming=False)
 
-            chat_box.update_msg(text, streaming=False)
     if st.session_state.get("need_rerun"):
         st.session_state["need_rerun"] = False
         st.rerun()

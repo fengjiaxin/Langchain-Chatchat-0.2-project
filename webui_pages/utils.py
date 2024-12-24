@@ -284,6 +284,7 @@ class ApiRequest:
             self,
             query: str,
             filename: str,
+            top_k:int,
             temperature: float = TEMPERATURE,
             max_tokens: int = MAX_TOKENS,
             presence_penalty: float = PRESENCE_PENALTY,
@@ -294,6 +295,7 @@ class ApiRequest:
         data = {
             "query": query,
             "filename": filename,
+            "top_k": top_k,
             "temperature": temperature,
             "max_tokens": max_tokens,
             "presence_penalty": presence_penalty

@@ -41,5 +41,4 @@ class ThreadSafeLRUCache:
                 self._order.append(key)
 
 
-# 有多线程问题隐患，锁的问题，之后修复
 longPdfCachePool = ThreadSafeLRUCache(CACHED_FILE_NUM)

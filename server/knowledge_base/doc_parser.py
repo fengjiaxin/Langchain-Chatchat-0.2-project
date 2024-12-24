@@ -1,7 +1,7 @@
 from pydantic import BaseModel
-import re
 from typing import List
 from langchain.document_loaders import PyMuPDFLoader
+from server.knowledge_base.word_helper import clean_paragraph
 
 
 class PageDoc(BaseModel):
@@ -22,39 +22,12 @@ class Chunk(BaseModel):
 
 
 class Doc(BaseModel):
-    path: str
     title: str
     pages: int
     chunks: List[Chunk]
 
-    def __init__(self, path: str = '', title: str = '', pages: int = 0, chunks: List[Chunk] = None):
-        super().__init__(path=path, title=title, pages=pages, chunks=chunks)
-
-
-def rm_cid(text):
-    text = re.sub(r'\(cid:\d+\)', '', text)
-    return text
-
-
-def rm_continuous_placeholders(text):
-    text = re.sub(r'[.\- —。_*]{7,}', '\t', text)
-    text = re.sub(r'\n{3,}', '\n\n', text)
-    return text
-
-
-def rm_hexadecimal(text):
-    text = re.sub(r'[0-9A-Fa-f]{21,}', '', text)
-    return text
-
-
-def clean_paragraph(text):
-    text = rm_cid(text)
-    text = rm_hexadecimal(text)
-    text = rm_continuous_placeholders(text)
-    return text
-
-
-PARAGRAPH_SPLIT_SYMBOL = '\n'
+    def __init__(self, title: str = '', pages: int = 0, chunks: List[Chunk] = None):
+        super().__init__(title=title, pages=pages, chunks=chunks)
 
 
 def parse_pdf(pdf_path: str) -> List[PageDoc]:
@@ -70,8 +43,8 @@ def parse_pdf(pdf_path: str) -> List[PageDoc]:
     return docs
 
 
-def get_plain_doc(docs: list[PageDoc]):
-    content_list = []
-    for page in docs:
-        content_list.append(page.content)
-    return PARAGRAPH_SPLIT_SYMBOL.join(content_list)
+if __name__ == "__main__":
+    pdf_file = r"D:\git\Qwen-finetune\test\files\大模型功能设计.pdf"
+    page_list = parse_pdf(pdf_file)
+    for page in page_list:
+        print(page)

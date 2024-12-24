@@ -42,7 +42,7 @@ FSCHAT_MODEL_WORKERS = {
     "Qwen2-0.5B-Instruct": {
         "host": DEFAULT_BIND_HOST,
         "port": 20002,
-    }
+    },
 }
 
 FSCHAT_CONTROLLER = {
